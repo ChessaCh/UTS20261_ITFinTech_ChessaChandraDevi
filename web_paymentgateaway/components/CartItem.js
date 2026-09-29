@@ -1,0 +1,3 @@
+export default function CartItem({ item, onIncrease, onDecrease, onRemove }) {
+  return <article className="cart-item"><div><h3>{item.name}</h3><p>Rp {item.price.toLocaleString("id-ID")} each</p></div><div className="cart-item-actions"><div className="quantity-control"><button onClick={() => onDecrease(item.productId)} aria-label={`Decrease ${item.name}`}>-</button><strong>{item.quantity}</strong><button onClick={() => onIncrease(item.productId)} aria-label={`Increase ${item.name}`}>+</button></div><strong className="item-subtotal">Rp {(item.price * item.quantity).toLocaleString("id-ID")}</strong><button className="remove-button" onClick={() => onRemove(item.productId)}>Remove</button></div></article>;
+}

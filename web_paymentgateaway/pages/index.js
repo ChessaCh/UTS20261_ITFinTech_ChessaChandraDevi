@@ -1,82 +1,56 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import Navbar from "../components/Navbar";
+import ProductCard from "../components/ProductCard";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const CART_KEY = "payment-gateway-cart";
+const products = [
+  { id: "coffee", name: "Coffee", category: "Drinks", price: 18000, description: "Freshly brewed coffee with a smooth finish.", icon: "Coffee" },
+  { id: "tea", name: "Tea", category: "Drinks", price: 12000, description: "A warm, calming cup for any time of day.", icon: "Tea" },
+  { id: "cola", name: "Coca-Cola", category: "Drinks", price: 10000, description: "A chilled classic served ready to refresh.", icon: "Cola" },
+  { id: "chips", name: "Potato Chips", category: "Snacks", price: 14000, description: "Crispy, lightly salted and easy to share.", icon: "Chips" },
+  { id: "chocolate", name: "Chocolate", category: "Dessert", price: 16000, description: "Rich chocolate for a small sweet treat.", icon: "Cocoa" },
+  { id: "burger", name: "Burger", category: "Food", price: 32000, description: "A satisfying burger with fresh toppings.", icon: "Burger" },
+  { id: "sandwich", name: "Sandwich", category: "Food", price: 26000, description: "A light and filling sandwich made fresh.", icon: "Sandwich" },
+  { id: "cake", name: "Cake", category: "Dessert", price: 22000, description: "Soft cake with a delicate, sweet topping.", icon: "Cake" },
+];
+const categories = ["All", "Drinks", "Snacks", "Food", "Dessert"];
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+function readCart() {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(window.localStorage.getItem(CART_KEY)) || []; } catch { return []; }
+}
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              index.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  const [cart, setCart] = useState([]);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [notification, setNotification] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setCart(readCart()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  function addToCart(product) {
+    const nextCart = [...cart];
+    const existingItem = nextCart.find((item) => item.productId === product.id);
+    if (existingItem) existingItem.quantity += 1;
+    else nextCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
+    setCart(nextCart);
+    window.localStorage.setItem(CART_KEY, JSON.stringify(nextCart));
+    setNotification(`${product.name} berhasil ditambahkan ke cart.`);
+    window.setTimeout(() => setNotification(""), 2500);
+  }
+
+  const visibleProducts = useMemo(() => products.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
+    return matchesSearch && (category === "All" || product.category === category);
+  }), [category, search]);
+  const cartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
+
+  return <div className="site-shell"><Navbar cartCount={cartQuantity} /><main className="page-container">
+    <section className="intro-section"><div><p className="eyebrow">Fresh picks, simple checkout</p><h1>Choose something good.</h1><p className="intro-copy">Browse the menu and build your order in a few clicks.</p></div><Link className="outline-button" href="/checkout">View cart <span aria-hidden="true">-&gt;</span></Link></section>{notification && <div className="cart-notification" role="status">{notification}</div>}
+    <section className="catalog-controls" aria-label="Product filters"><label className="search-box"><span aria-hidden="true">Search</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products" aria-label="Search products" /></label><div className="category-list">{categories.map((item) => <button className={category === item ? "category-button active" : "category-button"} key={item} onClick={() => setCategory(item)}>{item}</button>)}</div></section>
+    <div className="section-heading"><div><p className="eyebrow">Our menu</p><h2>{category === "All" ? "All products" : category}</h2></div><span className="result-count">{visibleProducts.length} items</span></div>
+    {visibleProducts.length > 0 ? <section className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} onAdd={addToCart} />)}</section> : <div className="empty-state"><h2>No products found</h2><p>Try another search or category.</p></div>}
+  </main></div>;
 }
