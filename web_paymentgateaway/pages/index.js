@@ -46,7 +46,7 @@ export default function Home() {
     const nextCart = [...cart];
     const existingItem = nextCart.find((item) => item.productId === product.id);
     if (existingItem) existingItem.quantity += 1;
-    else nextCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
+    else nextCart.push({ productId: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl, quantity: 1 });
     setCart(nextCart);
     window.localStorage.setItem(CART_KEY, JSON.stringify(nextCart));
     setNotification(`${product.name} was added to your cart.`);

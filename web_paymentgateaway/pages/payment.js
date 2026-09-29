@@ -156,191 +156,53 @@ export default function Payment() {
 
   const showLoading = isLoading && !missingCheckoutId;
 
+  const isExpired = checkout?.status === "PAYMENT_EXPIRED";
+  const statusLabel = isPaid
+    ? "Payment Successful"
+    : isExpired
+      ? "Payment Expired"
+      : "Waiting for Payment";
+
   return (
     <div className="site-shell">
       <Navbar cartCount={itemCount} />
-
-      <main className={`page-container payment-page ${isPaid ? "payment-page-paid" : "payment-page-pending"}`}>
-        <div className="checkout-progress" aria-label="Checkout progress"><Link className="progress-step progress-step-done" href="/checkout"><span>01</span><strong>Cart</strong></Link><span className="progress-line progress-line-done" /><div className={`progress-step ${isPaid ? "progress-step-done" : "progress-step-active"}`}><span>02</span><strong>Payment</strong></div><span className={`progress-line ${isPaid ? "progress-line-done" : ""}`} /><div className={`progress-step ${isPaid ? "progress-step-active" : ""}`}><span>03</span><strong>Completed</strong></div></div>
-        <div className="page-title payment-page-title">
-          <p className="eyebrow">Final step</p>
-
-          <h1>Payment</h1>
-
-          {showLoading ? (
-            <p className="intro-copy">
-              Loading checkout...
-            </p>
-          ) : displayError ? (
-            <p className="intro-copy">
-              Unable to load your checkout.
-            </p>
-          ) : (
-            <p className="intro-copy">
-              Reference ID: {checkout.referenceId}
-            </p>
-          )}
+      <main className={`page-container payment-page payment-page-${isPaid ? "success" : isExpired ? "expired" : "pending"}`}>
+        <div className="checkout-progress" aria-label="Checkout progress">
+          <Link className="progress-step progress-step-done" href="/checkout"><span>01</span><strong>Cart</strong></Link>
+          <span className="progress-line progress-line-done" />
+          <div className={`progress-step ${isPaid ? "progress-step-done" : "progress-step-active"}`}><span>02</span><strong>Payment</strong></div>
+          <span className={`progress-line ${isPaid ? "progress-line-done" : ""}`} />
+          <div className={`progress-step ${isPaid ? "progress-step-active" : ""}`}><span>03</span><strong>Completed</strong></div>
         </div>
 
+        <header className="payment-page-title">
+          <p className="eyebrow">Final step</p>
+          <h1>Payment</h1>
+          {showLoading ? <p className="intro-copy">Loading your checkout...</p> : displayError ? <p className="intro-copy">We could not retrieve your payment details.</p> : <div className="payment-reference"><span>Reference ID</span><strong>{checkout.referenceId}</strong></div>}
+        </header>
+
         {showLoading ? (
-          <div className="empty-state large">
-            <h2>Loading checkout...</h2>
-          </div>
+          <div className="payment-feedback payment-loading-state"><span className="payment-loading-mark" aria-hidden="true" /><h2>Preparing your payment</h2><p>Retrieving your order details securely.</p></div>
         ) : displayError ? (
-          <div className="empty-state large">
-            <h2>Unable to load checkout</h2>
-
-            <p>{displayError}</p>
-
-            <Link
-              className="primary-button"
-              href="/checkout"
-            >
-              Back to cart
-            </Link>
-          </div>
+          <div className="payment-feedback payment-error-state"><span className="payment-feedback-mark" aria-hidden="true">!</span><h2>Unable to Load Payment</h2><p>We could not retrieve your checkout information. Please try again or return to checkout.</p><p className="payment-error-detail" role="alert">{displayError}</p><Link className="primary-button" href="/checkout">Back to Checkout</Link></div>
         ) : (
           <div className="payment-layout payment-layout-enhanced">
             <section className="summary-panel order-summary payment-order-panel">
-              <div className="summary-heading">
-                <div>
-                  <p className="eyebrow">
-                    Order summary
-                  </p>
-
-                  <h2>Selected items</h2>
-                </div>
-
-                <span
-                  className={`status-badge ${
-                    isPaid ? "paid" : ""
-                  }`}
-                  style={isPaid ? {
-                    backgroundColor: "#d9efe2",
-                    color: "#1f6b45",
-                  } : undefined}
-                >
-                  {isPaid ? "PAID" : "PENDING"}
-                </span>
-              </div>
-
-              {checkout.items.map((item) => (
-                <div
-                  className="order-line"
-                  key={item.productId}
-                >
-                  <span>
-                    {item.name}{" "}
-                    <small>x{item.quantity}</small>
-                  </span>
-
-                  <strong>
-                    {money(item.subtotal)}
-                  </strong>
-                </div>
-              ))}
-
-              <div className="summary-divider" />
-
-              <div className="summary-row">
-                <span>Subtotal</span>
-
-                <strong>
-                  {money(checkout.subtotal)}
-                </strong>
-              </div>
-
-              <div className="summary-row">
-                <span>Tax</span>
-
-                <strong>
-                  {money(checkout.tax)}
-                </strong>
-              </div>
-
-              <div className="summary-total">
-                <span>Total</span>
-
-                <strong>
-                  {money(checkout.total)}
-                </strong>
-              </div>
+              <div className="payment-section-heading"><div><p className="eyebrow">Order summary</p><h2>Your order</h2></div><span className={`payment-raw-status payment-raw-status-${checkout.status.toLowerCase()}`}>{checkout.status}</span></div>
+              <div className="payment-order-items">{checkout.items.map((item) => <div className="payment-order-line" key={item.productId}><div><strong>{item.name}</strong><span>Quantity {item.quantity}</span></div><strong>{money(item.subtotal)}</strong></div>)}</div>
+              <div className="payment-totals"><div className="summary-row"><span>Subtotal</span><strong>{money(checkout.subtotal)}</strong></div><div className="summary-row"><span>Tax</span><strong>{money(checkout.tax)}</strong></div><div className="summary-total"><span>{isPaid ? "Total Paid" : "Total"}</span><strong>{money(checkout.total)}</strong></div></div>
             </section>
 
             <aside className="payment-action payment-action-card">
-              <p className="eyebrow">
-                Payment status
-              </p>
-
-              <div className={`payment-status ${isPaid ? "payment-status-paid" : "payment-status-pending"}`}>
-                <span className="status-dot" />
-
-                {isPaid
-                  ? "PAID"
-                  : checkout.status ===
-                    "PAYMENT_EXPIRED"
-                  ? "Payment Expired"
-                  : "Pending"}
-              </div>
+              <p className="eyebrow">Payment status</p>
+              <div className={`payment-status payment-status-${isPaid ? "paid" : isExpired ? "expired" : "pending"}`}><span className="status-dot" /><span>{statusLabel}</span></div>
 
               {isPaid ? (
-                <>
-                  <div className="payment-success-banner">
-                    <span className="payment-success-icon" aria-hidden="true">OK</span>
-                    <div>
-                      <strong>Payment successful</strong>
-                      <span>Your order has been confirmed.</span>
-                    </div>
-                  </div>
-                </>
-              ) : checkout.status ===
-                "PAYMENT_EXPIRED" ? (
-                <>
-                  <p>
-                    Your payment session has expired.
-                    Please create a new checkout.
-                  </p>
-
-                  <Link
-                    className="primary-button full-width"
-                    href="/checkout"
-                  >
-                    Back to cart
-                  </Link>
-                </>
+                <div className="payment-success-content"><div className="payment-success-icon" aria-hidden="true">OK</div><h2>Payment Successful</h2><p>Your payment has been received and your order is confirmed.</p><div className="payment-success-details"><div><span>Reference ID</span><strong>{checkout.referenceId}</strong></div><div><span>Total Paid</span><strong>{money(checkout.total)}</strong></div><div><span>Status</span><strong>LUNAS</strong></div></div><Link className="primary-button full-width" href="/">Continue Shopping</Link><Link className="back-link" href="/checkout">Back to cart</Link></div>
+              ) : isExpired ? (
+                <div className="payment-expired-content"><h2>Payment Session Expired</h2><p>This payment session has expired. Please return to checkout and start a new payment.</p><Link className="primary-button full-width" href="/checkout">Back to Checkout</Link></div>
               ) : (
-                <>
-                  <p>
-                    Complete your payment securely to
-                    confirm your order.
-                  </p>
-
-                  <button
-                    className="primary-button full-width"
-                    disabled={isPaying}
-                    onClick={createPaymentSession}
-                  >
-                    {isPaying
-                      ? "Opening Payment..."
-                      : "Confirm & Pay"}
-                  </button>
-
-                  {message && (
-                    <p
-                      className="notice"
-                      role="alert"
-                    >
-                      {message}
-                    </p>
-                  )}
-
-                  <Link
-                    className="back-link"
-                    href="/checkout"
-                  >
-                    Back to cart
-                  </Link>
-                </>
+                <div className="payment-pending-content"><h2>Ready to complete your order?</h2><p>You will be redirected to Xendit&apos;s secure payment page to complete your transaction.</p><button className="primary-button full-width payment-cta" disabled={isPaying} onClick={createPaymentSession}>{isPaying ? "Preparing payment..." : "Confirm & Pay"}</button>{message && <p className="notice" role="alert">{message}</p>}<Link className="back-link" href="/checkout">Back to cart</Link></div>
               )}
             </aside>
           </div>
