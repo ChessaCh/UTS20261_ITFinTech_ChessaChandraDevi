@@ -160,8 +160,9 @@ export default function Payment() {
     <div className="site-shell">
       <Navbar cartCount={itemCount} />
 
-      <main className="page-container payment-page">
-        <div className="page-title">
+      <main className={`page-container payment-page ${isPaid ? "payment-page-paid" : "payment-page-pending"}`}>
+        <div className="checkout-progress" aria-label="Checkout progress"><Link className="progress-step progress-step-done" href="/checkout"><span>01</span><strong>Cart</strong></Link><span className="progress-line progress-line-done" /><div className={`progress-step ${isPaid ? "progress-step-done" : "progress-step-active"}`}><span>02</span><strong>Payment</strong></div><span className={`progress-line ${isPaid ? "progress-line-done" : ""}`} /><div className={`progress-step ${isPaid ? "progress-step-active" : ""}`}><span>03</span><strong>Completed</strong></div></div>
+        <div className="page-title payment-page-title">
           <p className="eyebrow">Final step</p>
 
           <h1>Payment</h1>
@@ -195,12 +196,12 @@ export default function Payment() {
               className="primary-button"
               href="/checkout"
             >
-              Back to checkout
+              Back to cart
             </Link>
           </div>
         ) : (
-          <div className="payment-layout">
-            <section className="summary-panel order-summary">
+          <div className="payment-layout payment-layout-enhanced">
+            <section className="summary-panel order-summary payment-order-panel">
               <div className="summary-heading">
                 <div>
                   <p className="eyebrow">
@@ -219,7 +220,7 @@ export default function Payment() {
                     color: "#1f6b45",
                   } : undefined}
                 >
-                  {isPaid ? "LUNAS" : "Menunggu Pembayaran"}
+                  {isPaid ? "LUNAS" : "PENDING"}
                 </span>
               </div>
 
@@ -266,12 +267,12 @@ export default function Payment() {
               </div>
             </section>
 
-            <aside className="payment-action">
+            <aside className="payment-action payment-action-card">
               <p className="eyebrow">
                 Payment status
               </p>
 
-              <div className="payment-status">
+              <div className={`payment-status ${isPaid ? "payment-status-paid" : "payment-status-pending"}`}>
                 <span className="status-dot" />
 
                 {isPaid
@@ -284,13 +285,12 @@ export default function Payment() {
 
               {isPaid ? (
                 <>
-                  <p>
-                    Your payment has been successfully
-                    received.
-                  </p>
-
-                  <div className="notice">
-                    Payment completed successfully.
+                  <div className="payment-success-banner">
+                    <span className="payment-success-icon" aria-hidden="true">OK</span>
+                    <div>
+                      <strong>Pembayaran berhasil</strong>
+                      <span>Pesanan kamu sudah dikonfirmasi.</span>
+                    </div>
                   </div>
                 </>
               ) : checkout.status ===
@@ -305,14 +305,14 @@ export default function Payment() {
                     className="primary-button full-width"
                     href="/checkout"
                   >
-                    Back to Checkout
+                    Back to cart
                   </Link>
                 </>
               ) : (
                 <>
                   <p>
-                    Continue to the secure payment page
-                    to complete your order.
+                    Selesaikan pembayaran secara aman untuk
+                    mengonfirmasi pesanan.
                   </p>
 
                   <button
@@ -338,7 +338,7 @@ export default function Payment() {
                     className="back-link"
                     href="/checkout"
                   >
-                    Back to checkout
+                    Back to cart
                   </Link>
                 </>
               )}
