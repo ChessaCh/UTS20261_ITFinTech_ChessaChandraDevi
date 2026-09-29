@@ -220,7 +220,7 @@ export default function Payment() {
                     color: "#1f6b45",
                   } : undefined}
                 >
-                  {isPaid ? "LUNAS" : "PENDING"}
+                  {isPaid ? "PAID" : "PENDING"}
                 </span>
               </div>
 
@@ -276,11 +276,11 @@ export default function Payment() {
                 <span className="status-dot" />
 
                 {isPaid
-                  ? "LUNAS"
+                  ? "PAID"
                   : checkout.status ===
                     "PAYMENT_EXPIRED"
                   ? "Payment Expired"
-                  : "Menunggu Pembayaran"}
+                  : "Pending"}
               </div>
 
               {isPaid ? (
@@ -288,8 +288,8 @@ export default function Payment() {
                   <div className="payment-success-banner">
                     <span className="payment-success-icon" aria-hidden="true">OK</span>
                     <div>
-                      <strong>Pembayaran berhasil</strong>
-                      <span>Pesanan kamu sudah dikonfirmasi.</span>
+                      <strong>Payment successful</strong>
+                      <span>Your order has been confirmed.</span>
                     </div>
                   </div>
                 </>
@@ -311,8 +311,8 @@ export default function Payment() {
               ) : (
                 <>
                   <p>
-                    Selesaikan pembayaran secara aman untuk
-                    mengonfirmasi pesanan.
+                    Complete your payment securely to
+                    confirm your order.
                   </p>
 
                   <button

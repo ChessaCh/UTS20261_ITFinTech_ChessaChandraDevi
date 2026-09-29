@@ -49,7 +49,7 @@ export default function Home() {
     else nextCart.push({ productId: product.id, name: product.name, price: product.price, quantity: 1 });
     setCart(nextCart);
     window.localStorage.setItem(CART_KEY, JSON.stringify(nextCart));
-    setNotification(`${product.name} berhasil ditambahkan ke cart.`);
+    setNotification(`${product.name} was added to your cart.`);
     window.setTimeout(() => setNotification(""), 2500);
   }
 
