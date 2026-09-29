@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
+
+const CART_KEY = "payment-gateway-cart";
 
 export default function Payment() {
   const router = useRouter();
@@ -17,16 +19,13 @@ export default function Payment() {
     : router.query.checkoutId;
 
   const missingCheckoutId = router.isReady && !checkoutId;
+  const checkoutStatus = checkout?.status;
 
   /*
    * Load checkout from MongoDB.
    */
-  async function loadCheckout(showLoading = false) {
+  const loadCheckout = useCallback(async () => {
     if (!checkoutId) return;
-
-    if (showLoading) {
-      setIsLoading(true);
-    }
 
     try {
       const response = await fetch(
@@ -46,7 +45,7 @@ export default function Payment() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [checkoutId]);
 
   /*
    * Initial checkout loading.
@@ -54,8 +53,9 @@ export default function Payment() {
   useEffect(() => {
     if (!router.isReady || !checkoutId) return;
 
-    loadCheckout(true);
-  }, [checkoutId, router.isReady]);
+    const initialLoad = window.setTimeout(loadCheckout, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, [checkoutId, loadCheckout, router.isReady]);
 
   /*
    * Poll checkout status until it becomes PAID.
@@ -65,17 +65,37 @@ export default function Payment() {
    */
   useEffect(() => {
     if (!router.isReady || !checkoutId) return;
-    if (!checkout) return;
-    if (checkout.status === "PAID") return;
+    if (!checkoutStatus || checkoutStatus === "PAID") return;
 
     const interval = setInterval(() => {
-      loadCheckout(false);
+      loadCheckout();
     }, 3000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [router.isReady, checkoutId, checkout?.status]);
+  }, [checkoutId, checkoutStatus, loadCheckout, router.isReady]);
+
+  useEffect(() => {
+    if (checkoutStatus !== "PAID" || !checkout?.items) return;
+
+    try {
+      const cart = JSON.parse(window.localStorage.getItem(CART_KEY)) || [];
+      const paidProductIds = new Set(
+        checkout.items.map((item) => item.productId)
+      );
+      const remainingCart = cart.filter(
+        (item) => !paidProductIds.has(item.productId)
+      );
+
+      window.localStorage.setItem(
+        CART_KEY,
+        JSON.stringify(remainingCart)
+      );
+    } catch {
+      // Ignore malformed cart data; payment status remains server-controlled.
+    }
+  }, [checkout, checkoutStatus]);
 
   /*
    * Create Xendit Payment Session.
@@ -194,8 +214,12 @@ export default function Payment() {
                   className={`status-badge ${
                     isPaid ? "paid" : ""
                   }`}
+                  style={isPaid ? {
+                    backgroundColor: "#d9efe2",
+                    color: "#1f6b45",
+                  } : undefined}
                 >
-                  {isPaid ? "LUNAS" : checkout.status}
+                  {isPaid ? "LUNAS" : "Menunggu Pembayaran"}
                 </span>
               </div>
 
