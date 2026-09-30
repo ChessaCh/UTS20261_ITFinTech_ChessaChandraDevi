@@ -19,6 +19,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [notification, setNotification] = useState("");
+  const [retryToken, setRetryToken] = useState(0);
   useEffect(() => {
     async function loadProducts() {
       try {
@@ -37,7 +38,7 @@ export default function Home() {
     }
 
     loadProducts();
-  }, []);
+  }, [retryToken]);
   useEffect(() => {
     const timer = window.setTimeout(() => setCart(readCart()), 0);
     return () => window.clearTimeout(timer);
@@ -60,9 +61,9 @@ export default function Home() {
   const cartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
 
   return <div className="site-shell"><Navbar cartCount={cartQuantity} /><main className="page-container">
-    <section className="intro-section"><div><p className="eyebrow">Fresh picks, simple checkout</p><h1>Choose something good.</h1><p className="intro-copy">Browse the menu and build your order in a few clicks.</p></div><Link className="outline-button" href="/checkout">View cart <span aria-hidden="true">-&gt;</span></Link></section>{notification && <div className="cart-notification" role="status">{notification}</div>}
-    <section className="catalog-controls" aria-label="Product filters"><label className="search-box"><span aria-hidden="true">Search</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products" aria-label="Search products" /></label><div className="category-list">{categories.map((item) => <button className={category === item ? "category-button active" : "category-button"} key={item} onClick={() => setCategory(item)}>{item}</button>)}</div></section>
-    <div className="section-heading"><div><p className="eyebrow">Our menu</p><h2>{category === "All" ? "All products" : category}</h2></div><span className="result-count">{visibleProducts.length} items</span></div>
-    {isLoading ? <div className="empty-state"><h2>Loading products...</h2></div> : error ? <div className="empty-state"><h2>Unable to load products</h2><p>{error}</p></div> : visibleProducts.length > 0 ? <section className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} onAdd={addToCart} />)}</section> : <div className="empty-state"><h2>No products found</h2><p>Try another search or category.</p></div>}
+    <section className="intro-section"><div className="intro-content"><p className="eyebrow">Fresh picks, made for you</p><h1>Find something you&apos;ll love.</h1><p className="intro-copy">Browse food, drinks, snacks, and desserts, then build your order in a few clicks.</p></div><Link className="outline-button" href="/checkout">View cart <span aria-hidden="true">-&gt;</span></Link></section>{notification && <div className="cart-notification" role="status">{notification}</div>}
+    <section className="catalog-controls" aria-label="Product filters"><label className="search-box"><span className="search-icon" aria-hidden="true">Search</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products..." aria-label="Search products" /></label><div className="category-list" role="group" aria-label="Product categories">{categories.map((item) => <button type="button" className={category === item ? "category-button active" : "category-button"} key={item} onClick={() => setCategory(item)} aria-pressed={category === item}>{item}</button>)}</div></section>
+    <div className="section-heading"><div><p className="eyebrow">Explore our menu</p><h2>{category === "All" ? "All products" : category}</h2></div><span className="result-count">{visibleProducts.length} {visibleProducts.length === 1 ? "product" : "products"}</span></div>
+    {isLoading ? <section className="product-grid" aria-label="Loading products">{Array.from({ length: 8 }, (_, index) => <div className="product-card product-card-skeleton" key={index}><div className="skeleton-image" /><div className="product-card-body"><div className="skeleton-line skeleton-category" /><div className="skeleton-line skeleton-title" /><div className="skeleton-line skeleton-description" /><div className="skeleton-footer"><div className="skeleton-line skeleton-price" /><div className="skeleton-button" /></div></div></div>)}</section> : error ? <div className="empty-state"><div className="empty-state-mark" aria-hidden="true">!</div><h2>Unable to load products</h2><p>{error}</p><button type="button" className="primary-button" onClick={() => { setError(""); setIsLoading(true); setRetryToken((value) => value + 1); }}>Try again</button></div> : visibleProducts.length > 0 ? <section className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} onAdd={addToCart} />)}</section> : <div className="empty-state"><div className="empty-state-mark" aria-hidden="true">-</div><h2>No products found</h2><p>Try another search or choose a different category.</p><button type="button" className="outline-button" onClick={() => { setSearch(""); setCategory("All"); }}>Clear filters</button></div>}
   </main></div>;
 }
